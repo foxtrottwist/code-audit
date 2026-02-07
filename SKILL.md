@@ -26,11 +26,7 @@ RESUME?  →  SCOPE  →  PARTITION  →  REVIEW  →  VERIFY  →  PROPOSE
 
 ## Phase 0: Resume Check
 
-Every invocation:
-
-```bash
-ls .code-audit/ 2>/dev/null
-```
+Every invocation, check for existing state in `.code-audit.local/`.
 
 **If state exists**, read `state.json` and present:
 ```
@@ -46,26 +42,16 @@ Resume, start fresh, or view findings?
 
 ## Phase 1: Scope
 
-Use **AskUserQuestion** to determine audit type:
+Infer audit type and focus from the request context:
+- "audit the codebase" → Full review, all focus areas
+- "check docs in src/auth" → Module audit, documentation accuracy
+- "quick sync" → Quick sync (smoke test)
+- "explore the payment feature" → Feature exploration
 
-```yaml
-Question 1: "What type of audit?"
-options:
-  - "Full codebase review"
-  - "Specific directory/module"
-  - "Quick sync (smoke test)"
-  - "Feature exploration"
-
-Question 2: "Focus area?"
-options:
-  - "Documentation accuracy"
-  - "Missing documentation"
-  - "Stale/excessive docs"
-  - "All of the above"
-```
+Use **AskUserQuestion** only when scope or focus is genuinely ambiguous.
 
 **Output:**
-- Create `.code-audit/{project-slug}/`
+- Create `.code-audit.local/{project-slug}/`
 - Write `brief.md` with scope
 - Write `state.json`: `{ "phase": "partition" }`
 
@@ -89,16 +75,7 @@ Divide codebase into reviewable units.
 
 ## Phase 3: Review (Parallel Subagents)
 
-Spawn parallel Task agents for each partition. See [references/subagent-prompts.md](references/subagent-prompts.md).
-
-```
-Launch [N] parallel review agents:
-
-Task 1: Audit `src/auth/` - authentication module
-Task 2: Audit `src/api/` - API layer
-Task 3: Audit `src/models/` - data models
-...
-```
+Spawn parallel Task agents for each partition using prompts from [references/subagent-prompts.md](references/subagent-prompts.md). Use haiku for quick sync agents, sonnet for deep review (advisory — native routing handles the common case).
 
 Each subagent:
 1. Reviews assigned partition only
@@ -168,7 +145,7 @@ Options:
 ## State Files
 
 ```
-.code-audit/{project-slug}/
+.code-audit.local/{project-slug}/
 ├── state.json       # Current phase, partition status
 ├── brief.md         # Audit scope and requirements
 ├── partitions.md    # Review units

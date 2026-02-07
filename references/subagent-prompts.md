@@ -1,6 +1,6 @@
 # Subagent Prompts
 
-Templates for Task tool subagents. Customize based on audit type.
+Prompt templates for review subagents. Customize based on audit type.
 
 ## General Review Agent
 
